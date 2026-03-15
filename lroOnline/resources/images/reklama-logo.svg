@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 60" width="340" height="60">
+  <!-- Page shape -->
+  <rect x="0" y="0" width="52" height="56" rx="6" fill="#0D1B3E"/>
+  <!-- Folded corner -->
+  <polygon points="36,0 52,16 36,16" fill="#1B4FD8"/>
+  <polygon points="36,0 52,16 52,0" fill="#0F9B58"/>
+  <!-- Green bottom bar -->
+  <rect x="0" y="50" width="52" height="5" rx="2.5" fill="#0F9B58"/>
+  <!-- reklama text inside page -->
+  <text x="26" y="40" text-anchor="middle"
+        font-family="Sora, 'Segoe UI', sans-serif"
+        font-size="9" font-weight="800"
+        fill="white" letter-spacing="0.4">reklama</text>
+  <!-- Exclamation red badge -->
+  <circle cx="62" cy="12" r="14" fill="#D32F2F"/>
+  <rect x="58.5" y="4" width="7" height="10" rx="3.5" fill="white"/>
+  <circle cx="62" cy="20" r="3.5" fill="white"/>
+
+  <!-- Wordmark -->
+  <text x="86" y="36"
+        font-family="Sora, 'Segoe UI', sans-serif"
+        font-size="28" font-weight="800"
+        fill="#0D1B3E">reklama</text>
+
+  <!-- Tagline -->
+  <text x="88" y="52"
+        font-family="Inter, 'Segoe UI', sans-serif"
+        font-size="9" font-weight="600"
+        fill="#1B4FD8" letter-spacing="2.5">CABO VERDE</text>
+</svg>
