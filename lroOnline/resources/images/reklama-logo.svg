@@ -1,30 +1,68 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 60" width="340" height="60">
-  <!-- Page shape -->
-  <rect x="0" y="0" width="52" height="56" rx="6" fill="#0D1B3E"/>
-  <!-- Folded corner -->
-  <polygon points="36,0 52,16 36,16" fill="#1B4FD8"/>
-  <polygon points="36,0 52,16 52,0" fill="#0F9B58"/>
-  <!-- Green bottom bar -->
-  <rect x="0" y="50" width="52" height="5" rx="2.5" fill="#0F9B58"/>
-  <!-- reklama text inside page -->
-  <text x="26" y="40" text-anchor="middle"
-        font-family="Sora, 'Segoe UI', sans-serif"
-        font-size="9" font-weight="800"
-        fill="white" letter-spacing="0.4">reklama</text>
-  <!-- Exclamation red badge -->
-  <circle cx="62" cy="12" r="14" fill="#D32F2F"/>
-  <rect x="58.5" y="4" width="7" height="10" rx="3.5" fill="white"/>
-  <circle cx="62" cy="20" r="3.5" fill="white"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 200" width="420" height="200">
 
-  <!-- Wordmark -->
-  <text x="86" y="36"
-        font-family="Sora, 'Segoe UI', sans-serif"
-        font-size="28" font-weight="800"
-        fill="#0D1B3E">reklama</text>
+  <!-- ══════════════════════
+       OPEN BOOK ICON
+  ══════════════════════ -->
 
-  <!-- Tagline -->
-  <text x="88" y="52"
-        font-family="Inter, 'Segoe UI', sans-serif"
-        font-size="9" font-weight="600"
-        fill="#1B4FD8" letter-spacing="2.5">CABO VERDE</text>
+  <!-- Left cover (back shadow) -->
+  <path d="M30 62 L30 148 Q30 156 38 158 L105 162" stroke="#1B4FD8" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Right cover (back shadow) -->
+  <path d="M180 62 L180 148 Q180 156 172 158 L105 162" stroke="#1B4FD8" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Left page -->
+  <path d="M38 54 Q38 46 46 45 L105 42 L105 158 Q72 155 46 158 Q38 159 38 152 Z" fill="white" stroke="#1B4FD8" stroke-width="4.5" stroke-linejoin="round"/>
+  <!-- Right page -->
+  <path d="M172 54 Q172 46 164 45 L105 42 L105 158 Q138 155 164 158 Q172 159 172 152 Z" fill="white" stroke="#1B4FD8" stroke-width="4.5" stroke-linejoin="round"/>
+
+  <!-- Spine bottom curve -->
+  <path d="M38 152 Q70 168 105 170 Q140 168 172 152" stroke="#1B4FD8" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+  <!-- Spine center line -->
+  <path d="M105 42 Q102 100 105 170" stroke="#1B4FD8" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+  <!-- LEFT PAGE LINES -->
+  <path d="M49 64 Q76 62 100 64"   stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.28"/>
+  <path d="M48 76 Q75 74 100 76"   stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.28"/>
+  <path d="M47 88 Q75 86 100 88"   stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.28"/>
+  <path d="M47 100 Q75 98 100 100" stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.28"/>
+  <path d="M47 112 Q75 110 100 112" stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.22"/>
+  <path d="M47 124 Q75 122 100 124" stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.16"/>
+  <path d="M48 136 Q75 134 100 136" stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.10"/>
+
+  <!-- RIGHT PAGE LINES — left of ! -->
+  <path d="M110 64 Q120 62 128 64"   stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.28"/>
+  <path d="M110 76 Q120 74 128 76"   stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.28"/>
+  <path d="M110 88 Q120 86 128 88"   stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.28"/>
+  <path d="M110 100 Q120 98 128 100" stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.28"/>
+  <path d="M110 112 Q120 110 128 112" stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.22"/>
+  <path d="M110 124 Q120 122 128 124" stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.16"/>
+  <path d="M110 136 Q120 134 128 136" stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.10"/>
+
+  <!-- RIGHT PAGE LINES — right of ! -->
+  <path d="M148 64 Q158 62 163 64"   stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.28"/>
+  <path d="M148 76 Q158 74 163 76"   stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.28"/>
+  <path d="M148 88 Q158 86 163 88"   stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.28"/>
+  <path d="M148 100 Q158 98 163 100" stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.28"/>
+  <path d="M148 112 Q158 110 163 112" stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.22"/>
+  <path d="M148 124 Q158 122 163 124" stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.16"/>
+  <path d="M148 136 Q158 134 163 136" stroke="#1B4FD8" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.10"/>
+
+  <!-- RED ! centered at x=138 on right page -->
+  <rect x="131" y="62" width="14" height="54" rx="7" fill="#D32F2F"/>
+  <circle cx="138" cy="130" r="9"  fill="#D32F2F"/>
+
+  <!-- ══════════════════════
+       WORDMARK
+  ══════════════════════ -->
+  <text x="200" y="110"
+        font-family="Sora,'Segoe UI',sans-serif"
+        font-size="52"
+        font-weight="800"
+        fill="#1B4FD8">reklama</text>
+  <text x="202" y="138"
+        font-family="Sora,'Segoe UI',sans-serif"
+        font-size="11"
+        font-weight="600"
+        fill="#1B4FD8"
+        letter-spacing="4">CABO VERDE</text>
+
 </svg>

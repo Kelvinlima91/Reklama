@@ -7,31 +7,41 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class Regulador extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes;
 
+    protected $table = 'reguladores';
+
     protected $fillable = [
-        'nome_completo',
-        'nif',
+        'nome',
+        'apelido',
+        'numero_funcionario',
+        'cargo',
+        'departamento',
         'email',
         'telefone',
-        'ilha',
-        'concelho',
         'password',
+        'two_factor_secret',
+        'aprovado',
         'ativo',
+        'aprovado_em',
+        'aprovado_por',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
     ];
 
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
+            'aprovado_em'       => 'datetime',
             'password'          => 'hashed',
+            'aprovado'          => 'boolean',
             'ativo'             => 'boolean',
         ];
     }
@@ -39,7 +49,7 @@ class User extends Authenticatable
     // ── Relationships ──────────────────────────────────────────
 
     /**
-     * All complaints filed by this user.
+     * Complaints assigned to this regulator.
      */
     public function reclamacoes()
     {
@@ -47,7 +57,15 @@ class User extends Authenticatable
     }
 
     /**
-     * Notifications for this user (polymorphic).
+     * Infractions issued by this regulator.
+     */
+    public function infracoes()
+    {
+        return $this->hasMany(Infracao::class);
+    }
+
+    /**
+     * Notifications for this regulator (polymorphic).
      */
     public function notificacoes()
     {
@@ -55,7 +73,7 @@ class User extends Authenticatable
     }
 
     /**
-     * History entries created by this user (polymorphic).
+     * History entries created by this regulator (polymorphic).
      */
     public function historicoEstados()
     {
@@ -65,22 +83,19 @@ class User extends Authenticatable
     // ── Helpers ────────────────────────────────────────────────
 
     /**
-     * Returns the first name only.
+     * Full name.
      */
-    public function getPrimeiroNomeAttribute(): string
+    public function getNomeCompletoAttribute(): string
     {
-        return explode(' ', $this->nome_completo)[0];
+        return $this->nome . ' ' . $this->apelido;
     }
 
     /**
-     * Returns initials e.g. "JC" for João Cardoso.
+     * Initials e.g. "MS" for Maria Silva.
      */
     public function getIniciaisAttribute(): string
     {
-        $parts = explode(' ', $this->nome_completo);
-        $first = strtoupper(substr($parts[0], 0, 1));
-        $last  = isset($parts[1]) ? strtoupper(substr(end($parts), 0, 1)) : '';
-        return $first . $last;
+        return strtoupper(substr($this->nome, 0, 1) . substr($this->apelido, 0, 1));
     }
 
     /**
