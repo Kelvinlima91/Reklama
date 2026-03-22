@@ -7,19 +7,24 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class Empresa extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes;
 
+    protected $table = 'empresas';
+
     protected $fillable = [
-        'nome_completo',
+        'nome_comercial',
+        'razao_social',
         'nif',
+        'setor',
         'email',
         'telefone',
         'ilha',
         'concelho',
         'password',
-        'ativo',
+        'verificada',
+        'ativa',
     ];
 
     protected $hidden = [
@@ -32,14 +37,15 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
-            'ativo'             => 'boolean',
+            'verificada'        => 'boolean',
+            'ativa'             => 'boolean',
         ];
     }
 
     // ── Relationships ──────────────────────────────────────────
 
     /**
-     * All complaints filed by this user.
+     * All complaints filed against this company.
      */
     public function reclamacoes()
     {
@@ -47,7 +53,15 @@ class User extends Authenticatable
     }
 
     /**
-     * Notifications for this user (polymorphic).
+     * Infractions issued against this company.
+     */
+    public function infracoes()
+    {
+        return $this->hasMany(Infracao::class);
+    }
+
+    /**
+     * Notifications for this company (polymorphic).
      */
     public function notificacoes()
     {
@@ -55,7 +69,7 @@ class User extends Authenticatable
     }
 
     /**
-     * History entries created by this user (polymorphic).
+     * History entries created by this company (polymorphic).
      */
     public function historicoEstados()
     {
@@ -65,22 +79,35 @@ class User extends Authenticatable
     // ── Helpers ────────────────────────────────────────────────
 
     /**
-     * Returns the first name only.
-     */
-    public function getPrimeiroNomeAttribute(): string
-    {
-        return explode(' ', $this->nome_completo)[0];
-    }
-
-    /**
-     * Returns initials e.g. "JC" for João Cardoso.
+     * Initials from nome_comercial e.g. "CV" for CVTELECOM.
      */
     public function getIniciaisAttribute(): string
     {
-        $parts = explode(' ', $this->nome_completo);
-        $first = strtoupper(substr($parts[0], 0, 1));
-        $last  = isset($parts[1]) ? strtoupper(substr(end($parts), 0, 1)) : '';
-        return $first . $last;
+        $words = explode(' ', $this->nome_comercial);
+        if (count($words) === 1) {
+            return strtoupper(substr($this->nome_comercial, 0, 2));
+        }
+        return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+    }
+
+    /**
+     * Pending complaints count (not yet responded to).
+     */
+    public function getReclamacoesPendentesAttribute(): int
+    {
+        return $this->reclamacoes()
+            ->whereIn('estado', ['pendente', 'em_analise'])
+            ->count();
+    }
+
+    /**
+     * Resolution rate as a percentage.
+     */
+    public function getTaxaResolucaoAttribute(): float
+    {
+        $total    = $this->reclamacoes()->count();
+        $resolved = $this->reclamacoes()->where('estado', 'resolvida')->count();
+        return $total > 0 ? round(($resolved / $total) * 100, 1) : 0;
     }
 
     /**

@@ -1,59 +1,178 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Reklama Cabo Verde
+**Livro de Reclamações Eletrónico — República de Cabo Verde**
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Plataforma oficial de registo e gestão de reclamações de consumidores, desenvolvida para a DGPDC (Direção Geral de Proteção do Consumidor). Permite que cidadãos submetam reclamações contra empresas, que as empresas respondam, e que os reguladores fiscalizem e intervenham.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+| Camada | Tecnologia |
+|--------|-----------|
+| Framework | Laravel 12 · PHP 8.2 |
+| Base de dados | SQLite (dev) · MySQL (prod) |
+| Frontend | Blade · Tailwind CSS CDN |
+| Tipografia | Sora (display) · Inter (corpo) |
+| Servidor local | Laravel Herd — `http://127.0.0.1:8000` |
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Funcionalidades
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### Consumidor
+- Registo e autenticação
+- Submissão de reclamações com número de referência automático (`LRO-SVT-2026-00001`)
+- Acompanhamento do estado das reclamações
+- Painel com estatísticas pessoais e histórico
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Empresa
+- Autenticação separada
+- Visualização e resposta às reclamações recebidas
+- Dashboard com taxa de resolução
 
-## Laravel Sponsors
+### Regulador (DGPDC)
+- Autenticação com 2FA
+- Conta sujeita a aprovação administrativa
+- Supervisão de todas as reclamações
+- Emissão de infrações
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## Estrutura de Utilizadores
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```
+users          → Consumidores
+empresas       → Empresas registadas
+reguladores    → Funcionários da DGPDC
+```
 
-## Contributing
+Cada grupo tem o seu próprio guard, middleware, controller de autenticação e dashboard.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## Referência de Reclamação
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Formato: `LRO-{ILHA}-{ANO}-{SEQUÊNCIA}`
 
-## Security Vulnerabilities
+```
+LRO-SVT-2026-00001   →  Santiago, 2026, primeira reclamação
+LRO-SVI-2026-00003   →  São Vicente, 2026, terceira reclamação
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Códigos de ilha: `SVT` Santiago · `SVI` São Vicente · `STA` Santo Antão · `FOG` Fogo · `SAL` Sal · `BVT` Boa Vista · `SNI` São Nicolau · `MAI` Maio · `BRA` Brava
 
-## License
+A sequência reinicia por ilha a cada ano. Gerada pelo `ReclamacaoReferenceService` com fallback automático via `ReclamacaoObserver`.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## Estados de uma Reclamação
+
+```
+pendente → em_analise → encaminhada → resolvida
+                                    → recusada
+                                    → infracao
+```
+
+---
+
+## Instalação
+
+```bash
+git clone <repo>
+cd lroOnline
+
+composer install
+cp .env.example .env
+php artisan key:generate
+
+php artisan migrate
+php artisan db:seed --class=TestUsersSeeder
+```
+
+Iniciar servidor:
+```bash
+php artisan serve
+# ou via Laravel Herd
+```
+
+---
+
+## Contas de Teste
+
+| Tipo | Email | Password |
+|------|-------|----------|
+| Consumidor | `ana.tavares@email.cv` | `secret123` |
+| Empresa | `geral@tchonfogo.cv` | `secret123` |
+| Regulador | `c.mendes@dgpdc.cv` | `secret123` |
+
+> Em ambiente `local` o 2FA do Regulador é ignorado automaticamente.
+
+---
+
+## Rotas Principais
+
+```
+GET  /                        → Página inicial
+GET  /login                   → Login unificado (Consumidor / Empresa / Regulador)
+GET  /dashboard/user          → Painel do consumidor
+GET  /dashboard/company       → Painel da empresa
+GET  /dashboard/regulator     → Painel do regulador
+POST /reclamacoes             → Submeter nova reclamação
+DELETE /reclamacoes/{id}      → Eliminar reclamação (apenas pendentes)
+```
+
+---
+
+## Design
+
+| Elemento | Valor |
+|---------|-------|
+| Consumidor | Azul `#1B4FD8` |
+| Empresa | Verde `#0F9B58` |
+| Regulador | Vermelho `#D32F2F` |
+| Fundo escuro | Navy `#0D1B3E` |
+
+---
+
+## Estrutura de Ficheiros Relevantes
+
+```
+app/
+├── Http/Controllers/
+│   ├── Auth/UserAuthController.php
+│   ├── Auth/EmpresaAuthController.php
+│   ├── Auth/ReguladorAuthController.php
+│   ├── DashboardController.php
+│   └── ReclamacaoController.php
+├── Models/
+│   ├── User.php · Empresa.php · Regulador.php
+│   └── Reclamacao.php · Notificacao.php · Infracao.php
+├── Services/ReclamacaoReferenceService.php
+├── Observers/ReclamacaoObserver.php
+└── Middleware/
+    ├── AuthUser.php · AuthEmpresa.php · AuthRegulador.php
+
+resources/views/
+├── welcome.blade.php
+├── login.blade.php
+├── register.blade.php
+├── dashboard-user.blade.php
+├── dashboard_company.blade.php
+└── dashboard_regulator.blade.php
+
+database/migrations/
+├── create_users_table.php
+├── create_empresas_table.php
+├── create_reguladores_table.php
+├── create_reclamacoes_table.php
+├── create_notificacoes_table.php
+├── create_infracoes_table.php
+└── add_numero_referencia_to_reclamacoes.php
+```
+
+---
+
+## Licença
+
+Desenvolvido para uso interno da DGPDC — República de Cabo Verde.  
+© 2026 Reklama Cabo Verde. Todos os direitos reservados.
