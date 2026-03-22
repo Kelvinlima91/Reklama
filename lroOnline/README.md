@@ -1,7 +1,7 @@
 # Reklama Cabo Verde
-**Livro de Reclamações Eletrónico — República de Cabo Verde**
+**Electronic Complaints Book — Republic of Cape Verde**
 
-Plataforma oficial de registo e gestão de reclamações de consumidores, desenvolvida para a DGPDC (Direção Geral de Proteção do Consumidor). Permite que cidadãos submetam reclamações contra empresas, que as empresas respondam, e que os reguladores fiscalizem e intervenham.
+Official platform for registering and managing consumer complaints, built for the DGPDC (Directorate General of Consumer Protection). It allows citizens to submit complaints against companies, companies to respond, and regulators to monitor and intervene.
 
 ---
 
@@ -172,7 +172,7 @@ database/migrations/
 
 ---
 
-## Licença
+## License
 
-Desenvolvido para uso interno da DGPDC — República de Cabo Verde.  
-© 2026 Reklama Cabo Verde. Todos os direitos reservados.
+Built for internal use by the DGPDC — Republic of Cape Verde.  
+© 2026 Reklama Cabo Verde. All rights reserved.
