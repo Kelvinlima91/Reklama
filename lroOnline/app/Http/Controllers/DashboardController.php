@@ -13,15 +13,15 @@ class DashboardController extends Controller
     {
         $user        = Auth::guard('web')->user();
         $reclamacoes = $user->reclamacoes()
-            ->with('empresa')
-            ->latest()
-            ->take(10)
-            ->get();
+                            ->with('empresa')
+                            ->latest()
+                            ->take(10)
+                            ->get();
 
         $notificacoes = $user->notificacoes()
-            ->latest()
-            ->take(5)
-            ->get();
+                             ->latest()
+                             ->take(5)
+                             ->get();
 
         $stats = [
             'total'      => $user->reclamacoes()->count(),
@@ -33,15 +33,15 @@ class DashboardController extends Controller
         // Stats for current month — used in welcome banner
         $mesStats = [
             'analise'    => $user->reclamacoes()
-                ->whereIn('estado', ['pendente', 'em_analise'])
-                ->whereMonth('created_at', now()->month)
-                ->whereYear('created_at', now()->year)
-                ->count(),
+                                 ->whereIn('estado', ['pendente', 'em_analise'])
+                                 ->whereMonth('created_at', now()->month)
+                                 ->whereYear('created_at', now()->year)
+                                 ->count(),
             'resolvidas' => $user->reclamacoes()
-                ->where('estado', 'resolvida')
-                ->whereMonth('updated_at', now()->month)
-                ->whereYear('updated_at', now()->year)
-                ->count(),
+                                 ->where('estado', 'resolvida')
+                                 ->whereMonth('updated_at', now()->month)
+                                 ->whereYear('updated_at', now()->year)
+                                 ->count(),
         ];
 
         return view('dashboard-user', compact('user', 'reclamacoes', 'notificacoes', 'stats', 'mesStats'));
@@ -54,11 +54,15 @@ class DashboardController extends Controller
     {
         $empresa     = Auth::guard('empresa')->user();
         $reclamacoes = $empresa->reclamacoes()
-            ->with('user')
-            ->whereIn('estado', ['pendente', 'em_analise', 'encaminhada'])
-            ->latest()
-            ->take(10)
-            ->get();
+                               ->with('user')
+                               ->whereIn('estado', ['pendente', 'em_analise', 'encaminhada'])
+                               ->latest()
+                               ->take(10)
+                               ->get();
+
+        $notificacoes = method_exists($empresa, 'notificacoes')
+            ? $empresa->notificacoes()->latest()->take(5)->get()
+            : collect();
 
         $total      = $empresa->reclamacoes()->count();
         $resolvidas = $empresa->reclamacoes()->where('estado', 'resolvida')->count();
@@ -70,7 +74,7 @@ class DashboardController extends Controller
             'taxa'       => $total > 0 ? round(($resolvidas / $total) * 100) : 0,
         ];
 
-        return view('dashboard_company', compact('empresa', 'reclamacoes', 'stats'));
+        return view('dashboard-company', compact('empresa', 'reclamacoes', 'notificacoes', 'stats'));
     }
 
     /**
@@ -80,14 +84,14 @@ class DashboardController extends Controller
     {
         $regulador    = Auth::guard('regulador')->user();
         $reclamacoes  = \App\Models\Reclamacao::with(['user', 'empresa'])
-            ->latest()
-            ->take(10)
-            ->get();
+                                              ->latest()
+                                              ->take(10)
+                                              ->get();
         $infracoes    = \App\Models\Infracao::with('empresa')
-            ->whereIn('estado', ['emitida', 'notificada'])
-            ->latest()
-            ->take(5)
-            ->get();
+                                            ->whereIn('estado', ['emitida', 'notificada'])
+                                            ->latest()
+                                            ->take(5)
+                                            ->get();
 
         $stats = [
             'total'      => \App\Models\Reclamacao::count(),
@@ -96,6 +100,6 @@ class DashboardController extends Controller
             'infracoes'  => \App\Models\Infracao::whereIn('estado', ['emitida', 'notificada'])->count(),
         ];
 
-        return view('dashboard_regulator', compact('regulador', 'reclamacoes', 'infracoes', 'stats'));
+        return view('dashboard-regulator', compact('regulador', 'reclamacoes', 'infracoes', 'stats'));
     }
 }
