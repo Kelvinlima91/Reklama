@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Empresa;
+use App\Models\Notificacao;
 use App\Models\Reclamacao;
 use App\Services\ReclamacaoReferenceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ReclamacaoController extends Controller
 {
@@ -16,6 +18,15 @@ class ReclamacaoController extends Controller
 
     /**
      * Store a new reclamação submitted by a consumer.
+     *
+     * Flow (wrapped in DB transaction — atomic):
+     *   1. Validate input
+     *   2. Look up empresa by name (case-insensitive)
+     *   3. Generate reference number
+     *   4. Create Reclamacao — linked to empresa if found, null otherwise
+     *   5. If empresa found → set estado to 'em_analise', set prazo_empresa (+48h),
+     *      and create an in-app Notificacao for the company
+     *   6. Redirect with contextual success message
      */
     public function store(Request $request)
     {
@@ -34,46 +45,93 @@ class ReclamacaoController extends Controller
             'descricao.min'         => 'A descrição deve ter pelo menos 30 caracteres.',
         ]);
 
-        // Try to find a registered empresa by name (case-insensitive).
-        // If not found, store empresa_id as null — regulators can link later.
-        $empresa = Empresa::whereRaw('LOWER(nome_comercial) = ?', [
-            strtolower(trim($request->empresa_nome))
-        ])->first();
+        // Wrap everything in a transaction — if notification fails,
+        // the reclamação is rolled back too (no orphaned records).
+        [$reclamacao, $empresa] = DB::transaction(function () use ($request, $user) {
 
-        // Generate the reference number using the user's island
-        $referencia = $this->referenceService->generate($user->ilha);
+            // ── 1. Look up empresa by name (case-insensitive) ──
+            $empresa = Empresa::whereRaw('LOWER(nome_comercial) = ?', [
+                strtolower(trim($request->empresa_nome))
+            ])->first();
 
-        $reclamacao = Reclamacao::create([
-            'user_id'           => $user->id,
-            'empresa_id'        => $empresa?->id,
-            'empresa_nome'      => $request->empresa_nome,
-            'assunto'           => $request->assunto,
-            'categoria'         => $request->categoria,
-            'descricao'         => $request->descricao,
-            'estado'            => 'pendente',
-            'numero_referencia' => $referencia,
-            'ilha'              => $user->ilha,
-            'concelho'          => $user->concelho,
-        ]);
+            // ── 2. Determine estado and prazo ──────────────────
+            // Registered empresa → em_analise + 48h deadline
+            // Unknown empresa   → pendente, DGPDC will handle it
+            $estado       = $empresa ? 'em_analise' : 'pendente';
+            $prazoEmpresa = $empresa ? now()->addHours(48) : null;
+
+            // ── 3. Generate reference number ───────────────────
+            // Done inside the transaction so the sequence lock is
+            // held until the record is committed.
+            $referencia = app(ReclamacaoReferenceService::class)->generate($user->ilha);
+
+            // ── 4. Create the Reclamacao ───────────────────────
+            $reclamacao = Reclamacao::create([
+                'user_id'           => $user->id,
+                'empresa_id'        => $empresa?->id,
+                'empresa_nome'      => $request->empresa_nome,
+                'assunto'           => $request->assunto,
+                'categoria'         => $request->categoria,
+                'descricao'         => $request->descricao,
+                'estado'            => $estado,
+                'numero'            => $referencia,
+                'numero_referencia' => $referencia,
+                'prazo_empresa'     => $prazoEmpresa,
+                'ilha'              => $user->ilha,
+                'concelho'          => $user->concelho,
+            ]);
+
+            // ── 5. Notify empresa if registered ────────────────
+            if ($empresa) {
+                Notificacao::create([
+                    'notificavel_type' => Empresa::class,
+                    'notificavel_id'   => $empresa->id,
+                    'reclamacao_id'    => $reclamacao->id,
+                    'tipo'             => 'info',
+                    'titulo'           => "Nova reclamação — {$reclamacao->numero_referencia}",
+                    'mensagem'         => "O consumidor {$user->nome_completo} submeteu uma reclamação sobre: \"{$request->assunto}\". Tem 48 horas para responder.",
+                    'lida'             => false,
+                ]);
+            }
+
+            return [$reclamacao, $empresa];
+        });
+
+        // ── 6. Redirect with contextual success message ─────────
+        $mensagem = $empresa
+            ? "Reclamação {$reclamacao->numero_referencia} submetida com sucesso! A empresa {$empresa->nome_comercial} foi notificada e tem 48h para responder."
+            : "Reclamação {$reclamacao->numero_referencia} submetida com sucesso! A empresa indicada não está registada na plataforma — o caso será analisado pela DGPDC.";
 
         return redirect()
             ->route('dashboard.user')
-            ->with('sucesso', "Reclamação {$reclamacao->numero_referencia} submetida com sucesso! Será contactado em breve.");
+            ->with('sucesso', $mensagem);
     }
 
     /**
-     * Delete a reclamação — only if still 'pendente' and owned by this user.
+     * Delete a reclamação.
+     *
+     * Allowed states: 'pendente' (empresa not registered)
+     *                 'em_analise' only if no response yet (respondida_em is null)
+     * Ownership check uses loose cast to avoid SQLite int/string mismatch.
      */
     public function destroy(Reclamacao $reclamacao)
     {
         $user = Auth::guard('web')->user();
 
-        if ($reclamacao->user_id !== $user->id) {
+        // Use loose cast — SQLite can return IDs as strings
+        if ((int) $reclamacao->user_id !== (int) $user->id) {
             abort(403, 'Sem permissão para eliminar esta reclamação.');
         }
 
-        if ($reclamacao->estado !== 'pendente') {
-            return back()->withErrors(['erro' => 'Só é possível eliminar reclamações pendentes.']);
+        // Allow delete on 'pendente' OR 'em_analise' with no response yet.
+        // Once a company has responded, it can no longer be deleted.
+        $podeEliminar = $reclamacao->estado === 'pendente'
+            || ($reclamacao->estado === 'em_analise' && is_null($reclamacao->respondida_em));
+
+        if (! $podeEliminar) {
+            return back()->withErrors([
+                'erro' => 'Não é possível eliminar esta reclamação. Já se encontra em processamento.',
+            ]);
         }
 
         $ref = $reclamacao->numero_referencia;

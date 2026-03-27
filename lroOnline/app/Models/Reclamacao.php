@@ -14,6 +14,10 @@ class Reclamacao extends Model
 
     protected $fillable = [
         'numero',
+        'numero_referencia',
+        'empresa_nome',
+        'ilha',
+        'concelho',
         'user_id',
         'empresa_id',
         'regulador_id',
@@ -122,13 +126,6 @@ class Reclamacao extends Model
     // ── Helpers ────────────────────────────────────────────────
 
     /**
-     * Generates a unique reference number like #00521.
-     */
-    public static function gerarNumero(): string
-    {
-        $ultimo = static::withTrashed()->max('id') ?? 0;
-        return '#' . str_pad($ultimo + 1, 5, '0', STR_PAD_LEFT);
-    }
 
     /**
      * Whether the company has exceeded their 48h deadline.

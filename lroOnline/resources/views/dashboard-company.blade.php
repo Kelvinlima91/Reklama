@@ -175,7 +175,9 @@
                             };
                         @endphp
                         <div class="notif-item flex items-start gap-3 px-4 py-3.5 {{ $isLast ? '' : 'border-b border-gray-50' }} {{ $notif->lida ? '' : 'bg-blue-50/40' }} hover:bg-gray-50 transition-colors cursor-pointer"
-                             data-read="{{ $notif->lida ? 'true' : 'false' }}" onclick="markRead(this)">
+                             data-read="{{ $notif->lida ? 'true' : 'false' }}"
+                             data-id="{{ $notif->id }}"
+                             onclick="markRead(this)">
                             <div class="w-9 h-9 rounded-xl {{ $iconBg }} flex items-center justify-center flex-shrink-0 mt-0.5">
                                 <svg class="w-4 h-4 {{ $iconColor }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                             </div>
@@ -500,7 +502,7 @@
                         </div>
                     </div>
                     <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                        <p class="text-xs text-gray-400">Para alterar os dados da empresa, contacte <span class="text-cv-green">suporte@livroreclamacoes.cv</span></p>
+                        <p class="text-xs text-gray-400">Para alterar os dados da empresa, contacte <span class="text-cv-green"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="047771746b76706144686d72766b76616768656965676b61772a6772">[email&#160;protected]</a></span></p>
                     </div>
                 </div>
             </div>
@@ -521,7 +523,7 @@
     </main>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     const pages = ['dashboard', 'reclamacoes', 'pendentes', 'relatorios', 'perfil', 'utilizadores'];
     const pageTitles = {
         dashboard:    'Painel da Empresa',
@@ -588,20 +590,87 @@
     }
 
     // ── Notifications ────────────────────────────────────────
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
     function toggleNotif() {
         document.getElementById('notif-dropdown').classList.toggle('hidden');
     }
 
+    /**
+     * Mark a single notification as read:
+     *   1. Update the UI immediately (optimistic)
+     *   2. Persist lida=true to the DB via POST /empresa/notificacoes/{id}/lida
+     *   3. On failure: fully revert UI including the unread dot
+     */
     function markRead(el) {
+        if (el.dataset.read === 'true') return; // already read — skip
+
+        // Optimistic UI update
         el.dataset.read = 'true';
         el.classList.remove('bg-blue-50/40');
         const dot = el.querySelector('.unread-dot');
         if (dot) dot.remove();
         updateBadge();
+
+        // Persist to DB
+        const notifId = el.dataset.id;
+        if (notifId) {
+            fetch(`/empresa/notificacoes/${notifId}/lida`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+            }).catch(() => {
+                // Full revert on failure — including dot restoration
+                el.dataset.read = 'false';
+                el.classList.add('bg-blue-50/40');
+                if (!el.querySelector('.unread-dot')) {
+                    const newDot = document.createElement('div');
+                    newDot.className = 'w-2 h-2 rounded-full bg-cv-green flex-shrink-0 mt-2 unread-dot';
+                    el.appendChild(newDot);
+                }
+                updateBadge();
+            });
+        }
     }
 
+    /**
+     * Mark all as read in one single request — not N individual requests.
+     */
     function markAllRead() {
-        document.querySelectorAll('.notif-item[data-read="false"]').forEach(el => markRead(el));
+        const unreadItems = document.querySelectorAll('.notif-item[data-read="false"]');
+        if (unreadItems.length === 0) return;
+
+        // Optimistic UI update for all items
+        unreadItems.forEach(el => {
+            el.dataset.read = 'true';
+            el.classList.remove('bg-blue-50/40');
+            const dot = el.querySelector('.unread-dot');
+            if (dot) dot.remove();
+        });
+        updateBadge();
+
+        // Single request for all
+        fetch('/empresa/notificacoes/todas-lidas', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+            },
+        }).catch(() => {
+            // Revert all on failure
+            unreadItems.forEach(el => {
+                el.dataset.read = 'false';
+                el.classList.add('bg-blue-50/40');
+                if (!el.querySelector('.unread-dot')) {
+                    const newDot = document.createElement('div');
+                    newDot.className = 'w-2 h-2 rounded-full bg-cv-green flex-shrink-0 mt-2 unread-dot';
+                    el.appendChild(newDot);
+                }
+            });
+            updateBadge();
+        });
     }
 
     function updateBadge() {
