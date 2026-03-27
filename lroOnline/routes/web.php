@@ -5,6 +5,8 @@ use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\Auth\EmpresaAuthController;
 use App\Http\Controllers\Auth\ReguladorAuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ReclamacaoController;
+use App\Http\Controllers\NotificacaoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -74,8 +76,6 @@ Route::post('/logout_regulator', [ReguladorAuthController::class, 'logout'])
     ->middleware('auth:regulador');
 
 
-use App\Http\Controllers\ReclamacaoController;
-
 /*
 |--------------------------------------------------------------------------
 | Consumer dashboard (protected)
@@ -106,6 +106,21 @@ Route::middleware('auth.user')->group(function () {
 
 Route::middleware('auth.empresa')->prefix('dashboard')->group(function () {
     Route::get('/company', [DashboardController::class, 'company'])->name('dashboard.company');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Empresa notifications (protected)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth.empresa')->prefix('empresa')->group(function () {
+    // Static route MUST be declared before the wildcard — otherwise
+    // 'todas-lidas' is captured by {notificacao} and never reaches this handler.
+    Route::post('/notificacoes/todas-lidas', [NotificacaoController::class, 'markAllRead'])
+         ->name('empresa.notificacoes.todas-lidas');
+    Route::post('/notificacoes/{notificacao}/lida', [NotificacaoController::class, 'markRead'])
+         ->name('empresa.notificacoes.lida');
 });
 
 
